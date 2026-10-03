@@ -1,0 +1,362 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b0d10;
+  --card: #12161b;
+  --border: #252b32;
+  --text: #f1f4f7;
+  --muted: #8b949e;
+  --accent: #75d6a3;
+  --accent-dim: rgba(117, 214, 163, 0.15);
+  --offline: #f85149;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+.dashboard {
+  width: min(1400px, 94vw);
+  min-height: 100vh;
+  margin: auto;
+  padding: 28px 0 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+.subtitle,
+.card-title,
+footer {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+
+.subtitle {
+  margin-top: 4px;
+}
+
+.menu-btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.clock-section {
+  text-align: center;
+  padding: 42px 0 34px;
+}
+
+.clock {
+  font-size: clamp(64px, 10vw, 118px);
+  line-height: .9;
+  font-weight: 300;
+  letter-spacing: -.055em;
+}
+
+.date {
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: clamp(15px, 2vw, 20px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 150px;
+}
+
+.card-title {
+  margin-bottom: 18px;
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-header-flex .card-title {
+  margin-bottom: 0;
+}
+
+.metric-dropdown {
+  background: #1a2027;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.placeholder-value {
+  font-size: 38px;
+  font-weight: 300;
+}
+
+.placeholder-value.small,
+.media-title-text {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.music-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.album {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #1a2027;
+  font-size: 24px;
+}
+
+.progress {
+  height: 3px;
+  margin-top: 22px;
+  background: #252b32;
+  border-radius: 99px;
+}
+
+.progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+}
+
+.status-row,
+.system-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  margin: 11px 0;
+  font-size: 13px;
+}
+
+.system-row {
+  grid-template-columns: 1fr auto;
+  margin: 10px 0;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #555d66;
+}
+
+.dot.online {
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(117, 214, 163, .25);
+}
+
+.dot.offline {
+  background: var(--offline);
+  box-shadow: 0 0 10px rgba(248, 81, 73, .25);
+}
+
+.system-row strong,
+.status-row strong {
+  font-weight: 500;
+}
+
+/* CALENDARIO DINAMICO */
+.calendar-line {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.event-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.event-item:last-child {
+  border-bottom: none;
+}
+
+.event-summary {
+  color: var(--text);
+}
+
+.event-time {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+@media (max-width: 700px) {
+  .dashboard {
+    width: 92vw;
+    padding-top: 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clock-section {
+    padding: 34px 0 26px;
+  }
+}
+
+/* STILI MENU A TENDINA */
+.dropdown-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  min-width: 170px;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 8px 12px;
+  text-align: left;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #1a2027;
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+
+.media-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.media-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.media-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.08);
+}
+
+.media-btn:active {
+  transform: scale(0.95);
+}
+
+.media-btn.play-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(78, 217, 156, 0.15);
+  border-color: #4ed99c;
+  color: #4ed99c;
+}
+
+.media-btn.play-btn:hover {
+  background: rgba(78, 217, 156, 0.3);
+  box-shadow: 0 0 12px rgba(78, 217, 156, 0.4);
+}
+
+/* Ingrandimento Sezione Meteo sul Tablet */
+.weather-temp-num {
+    font-size: 3rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+.weather-icon-inline {
+    font-size: 2.5rem !important;
+}

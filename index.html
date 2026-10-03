@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMARTDESK - Home Control Panel</title>
+    <!-- Chart.js da CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f14;
+            --card-bg: #121820;
+            --card-border: #1d2633;
+            --text-main: #f0f4f8;
+            --text-sub: #8292a6;
+            --accent-green: #4ed99c;
+            --accent-red: #ff5c5c;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .header-title h1 {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        .header-title p {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .three-dots {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .three-dots:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        /* DROPDOWN MENU */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 100;
+            min-width: 180px;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu ul {
+            list-style: none;
+        }
+
+        .dropdown-menu li {
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-menu li:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* OROLOGIO CENTRALE */
+        .clock-section {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .clock-section h1 {
+            font-size: 5.5rem;
+            font-weight: 300;
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .clock-section .date {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            margin-top: 0.5rem;
+        }
+
+        /* GRID CARDS */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            color: var(--text-sub);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* METEO */
+        .weather-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .weather-temp {
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .weather-cond {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+        }
+
+        /* MEDIA PLAYER */
+        .now-playing-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .now-playing-artist {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        .media-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .media-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .media-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .media-btn.play {
+            background: rgba(78, 217, 156, 0.15);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* SELECT DROPDOWN METRICA */
+        .metric-select {
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* LISTE STATUS E LAPTOP */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        .info-row span:first-child {
+            color: var(--text-sub);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-red);
+            transition: all 0.3s;
+        }
+
+        /* FOOTER */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-title">
+            <h1>SMARTDESK</h1>
+            <p>HOME CONTROL PANEL</p>
+        </div>
+        <button class="three-dots" id="menu-btn" title="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+        </button>
+
+        <div class="dropdown-menu" id="menu-dropdown">
+            <ul>
+                <li id="menu-refresh">🔄 Ricarica Pagina</li>
+                <li id="menu-suspend">🌙 Sospendi Laptop</li>
+                <li id="menu-poweroff" style="color: var(--accent-red);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                        <line x1="12" y1="2" x2="12" y2="12"></line>
+                    </svg>
+                    Spegni Laptop
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- OROLOGIO CENTRALE -->
+    <div class="clock-section">
+        <h1 id="clock">--:--</h1>
+        <div class="date" id="date">-- -- ----</div>
+    </div>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+
+        <!-- WEATHER CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">WEATHER</span>
+            </div>
+            <div class="weather-content">
+                <div class="weather-temp" id="weather-temp">--°C</div>
+            </div>
+            <div class="weather-cond" id="weather-cond">In attesa dei dati...</div>
+        </div>
+
+        <!-- NOW PLAYING CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">NOW PLAYING</span>
+                <span style="color: var(--text-sub);">🎵</span>
+            </div>
+            <div>
+                <div class="now-playing-title" id="media-title">Nothing playing</div>
+                <div class="now-playing-artist" id="media-artist">In attesa di media...</div>
+            </div>
+            <div class="media-controls">
+                <button class="media-btn prev">⏮</button>
+                <button class="media-btn play">⏯</button>
+                <button class="media-btn next">⏭</button>
+            </div>
+        </div>
+
+        <!-- ACTIVITY / CHART CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">ACTIVITY</span>
+                <select class="metric-select" id="metric-select">
+                    <option value="cpu">CPU (%)</option>
+                    <option value="ram">RAM (%)</option>
+                    <option value="net">Rete (MB/s)</option>
+                </select>
+            </div>
+            <div style="height: 110px; position: relative;">
+                <canvas id="cpuChart"></canvas>
+            </div>
+        </div>
+
+        <!-- LAPTOP CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">LAPTOP</span>
+                <div class="status-badge">
+                    <span id="laptop-status-dot" class="dot"></span>
+                    <span id="laptop-status-text" style="font-size: 0.8rem; font-weight: 600; color: var(--accent-red);">OFFLINE</span>
+                </div>
+            </div>
+            <div>
+                <div class="info-row">
+                    <span>OS</span>
+                    <span id="laptop-os">Windows 11</span>
+                </div>
+                <div class="info-row">
+                    <span>CPU</span>
+                    <span id="laptop-cpu">-- %</span>
+                </div>
+                <div class="info-row">
+                    <span>RAM</span>
+                    <span id="laptop-ram">-- / -- GB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDAR CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">CALENDAR</span>
+                <span style="color: var(--text-sub);">📅</span>
+            </div>
+            <div class="events-list" id="events-list">
+                <div style="color: var(--text-sub); font-size: 0.9rem;">Caricamento eventi...</div>
+            </div>
+        </div>
+
+        <!-- SYSTEM STATUS CARD -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">SYSTEM STATUS</span>
+            </div>
+            <div>
+                <div class="info-row">
+                    <div class="status-badge">
+                        <span class="dot" style="background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green);"></span>
+                        <span>Dashboard</span>
+                    </div>
+                    <span style="color: var(--accent-green);">Online</span>
+                </div>
+                <div class="info-row">
+                    <div class="status-badge">
+                        <span class="dot" style="background-color: var(--accent-green); box-shadow: 0 0 8px var(--accent-green);"></span>
+                        <span>Tablet</span>
+                    </div>
+                    <span style="color: var(--accent-green);">Online</span>
+                </div>
+                <div class="info-row">
+                    <div class="status-badge">
+                        <span id="agent-status-dot" class="dot"></span>
+                        <span>Laptop Agent</span>
+                    </div>
+                    <span id="agent-status-text" style="color: var(--accent-red);">Disconnected</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <span>SMARTDESK v0.2</span>
+        <span>LOCAL MODE</span>
+    </footer>
+
+    <!-- JS SCRIPT -->
+    <script src="js/app.js"></script>
+</body>
+</html>
