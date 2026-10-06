@@ -1,2 +1,2 @@
-cd /d "C:\Users\Lenovo\Desktop\Smartdesk project\SmartDesk_v0.1"
+cd /d "C:\Users\Lenovo\Desktop\Smartdesk project\SmartDesk_v0.1\SmartDesk"
 py agent.py

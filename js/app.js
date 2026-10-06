@@ -8,7 +8,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // IP del tuo laptop nella rete locale per il WebSocket dell'Agent
-const LAPTOP_IP = '192.168.1.63'; // <--- INSERISCI QUI L'IP DEL TUO LAPTOP
+const LAPTOP_IP = '192.168.1.72'; // <--- INSERISCI QUI L'IP DEL TUO LAPTOP
 const WS_URL = `ws://${window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') ? window.location.hostname : LAPTOP_IP}:8765`;
 
 let ws = null;
