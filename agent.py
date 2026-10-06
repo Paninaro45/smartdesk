@@ -27,47 +27,12 @@ else:
 # Link iCal Google Calendar
 GOOGLE_ICAL_URL = "https://calendar.google.com/calendar/ical/famiglialamia6%40gmail.com/private-26d515a092bc84df3ec04b3b53211369/basic.ics"
 
-
 def fetch_calendar_events():
-    """Scarica e legge gli eventi di oggi dal link Google Calendar iCal"""
-    if not GOOGLE_ICAL_URL or "INSERISCI" in GOOGLE_ICAL_URL:
-        return []
-
-    try:
-        req = urllib.request.Request(
-            GOOGLE_ICAL_URL, 
-            headers={'User-Agent': 'Mozilla/5.0'}
-        )
-        with urllib.request.urlopen(req, timeout=5) as response:
-            ical_data = response.read()
-
-        cal = Calendar.from_ical(ical_data)
-        today = datetime.date.today()
-        
-        # Estrae tutti gli eventi attivi per la data odierna
-        events_today = recurring_ical_events.of(cal).at(today)
-
-        formatted_events = []
-        for event in events_today:
-            summary = str(event.get('summary', 'Evento senza titolo'))
-            start = event.get('dtstart').dt
-            
-            if isinstance(start, datetime.datetime):
-                time_str = start.strftime("%H:%M")
-            elif isinstance(start, datetime.date):
-                time_str = "Tutto il giorno"
-            else:
-                time_str = ""
-
-            formatted_events.append({
-                "time": time_str,
-                "summary": summary
-            })
-
-        return formatted_events
-    except Exception as e:
-        print(f"Errore lettura Calendario: {e}")
-        return []
+    """Eventi di prova per verificare la dashboard"""
+    return [
+        {"time": "15:00", "summary": "Evento di Prova 1"},
+        {"time": "18:30", "summary": "Evento di Prova 2"}
+    ]
 
 
 def fetch_weather_info():
