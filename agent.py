@@ -168,17 +168,6 @@ def fetch_system_stats():
         "autopage": True  # <--- AGGIUNGI QUESTA RIGA
     }
 
-    
-    return {
-        "os": "Windows 11" if IS_WINDOWS else "Linux Fedora",
-        "cpu": cpu_percent,
-        "ram_percent": ram.percent,
-        "ram_used_gb": round(ram.used / (1024**3), 1),
-        "ram_total_gb": round(ram.total / (1024**3), 1),
-        "net_recv_mb": round(net.bytes_recv / (1024**2), 1)
-    }
-
-
 async def handle_command(command):
     """Gestione comandi ricevuti dalla dashboard"""
     print(f"🕹️ Comando ricevuto: {command}")
