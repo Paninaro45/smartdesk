@@ -28,11 +28,36 @@ else:
 GOOGLE_ICAL_URL = "https://calendar.google.com/calendar/ical/famiglialamia6%40gmail.com/private-26d515a092bc84df3ec04b3b53211369/basic.ics"
 
 def fetch_calendar_events():
-    """Eventi di prova per verificare la dashboard"""
-    return [
-        {"time": "15:00", "summary": "Evento di Prova 1"},
-        {"time": "18:30", "summary": "Evento di Prova 2"}
-    ]
+    """Recupera gli eventi reali di oggi dal link Google Calendar iCal"""
+    try:
+        req = urllib.request.Request(GOOGLE_ICAL_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            ical_data = response.read()
+
+        cal = Calendar.from_ical(ical_data)
+        today = datetime.date.today()
+        
+        # Recupera eventi attivi nella giornata odierna
+        events_today = recurring_ical_events.of(cal).at(today)
+        parsed_events = []
+
+        for event in events_today:
+            summary = str(event.get('summary', 'Senza Titolo'))
+            dtstart = event.get('dtstart').dt
+            
+            if isinstance(dtstart, datetime.datetime):
+                time_str = dtstart.strftime('%H:%M')
+            else:
+                time_str = "Tutto il giorno"
+                
+            parsed_events.append({"time": time_str, "summary": summary})
+
+        # Ordina per orario
+        parsed_events.sort(key=lambda x: x['time'])
+        return parsed_events
+    except Exception as e:
+        print(f"Errore lettura calendario: {e}")
+        return [{"time": "--:--", "summary": "Nessun evento disponibile"}]
 
 
 def fetch_weather_info():
@@ -54,7 +79,7 @@ def fetch_weather_info():
                 icon = "⛅"
             elif code in [45, 48]:
                 condition = "Nebbia"
-                icon = "🌫️️"
+                icon = "🌫"
             elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
                 condition = "Pioggia"
                 icon = "🌧️"
@@ -66,14 +91,14 @@ def fetch_weather_info():
                 icon = "🌩️"
 
             return {
-                "temp": f"{temp}°C",
+                "temp": f"{temp}",
                 "condition": condition,
                 "icon": icon
             }
     except Exception as e:
         print(f"Errore meteo: {e}")
         
-    return {"temp": "--°C", "condition": "N/D", "icon": "🌡"}
+    return {"temp": "--", "condition": "N/D", "icon": "🌡"}
 
 
 async def fetch_media_info():
@@ -130,18 +155,16 @@ def fetch_system_stats():
         "ram_used_gb": round(ram.used / (1024**3), 1),
         "ram_total_gb": round(ram.total / (1024**3), 1),
         "net_recv_mb": round(net.bytes_recv / (1024**2), 1),
-        "autopage": True  # <--- AGGIUNGI QUESTA RIGA
+        "autopage": True
     }
 
 async def handle_command(command):
     """Gestione comandi ricevuti dalla dashboard"""
     print(f"🕹️ Comando ricevuto: {command}")
     if IS_WINDOWS:
-        if command == "poweroff" or command == "shutdown":
-            # Spegne Windows subito
+        if command in ["poweroff", "shutdown"]:
             subprocess.run(["shutdown", "/s", "/t", "0"], shell=True)
-        elif command == "suspend" or command == "lock":
-            # Blocca/Sospende Windows
+        elif command in ["suspend", "lock"]:
             ctypes.windll.user32.LockWorkStation()
         elif command == "media_play_pause":
             pyautogui.press('playpause')
@@ -149,22 +172,23 @@ async def handle_command(command):
             pyautogui.press('nexttrack')
         elif command == "media_previous":
             pyautogui.press('prevtrack')
+
 async def agent_connection_handler(websocket):
     print("⚡ Tablet/Dashboard connesso all'Agent!")
     
-    # Task 1: Invio dati continuativo (ogni 1 secondo)
     async def send_loop():
         try:
             while True:
                 stats = fetch_system_stats()
                 media = await fetch_media_info()
                 weather = fetch_weather_info()
+                events = fetch_calendar_events()
                 
                 payload = {
                     **stats,
                     "media": media,
                     "weather": weather,
-                    "events": fetch_calendar_events()
+                    "events": events
                 }
                 
                 await websocket.send(json.dumps(payload))
@@ -172,7 +196,6 @@ async def agent_connection_handler(websocket):
         except websockets.exceptions.ConnectionClosed:
             pass
 
-    # Task 2: Ascolto comandi in entrata dal client Web
     async def receive_loop():
         try:
             async for message in websocket:
@@ -186,7 +209,6 @@ async def agent_connection_handler(websocket):
         except websockets.exceptions.ConnectionClosed:
             pass
 
-    # Avvio contemporaneo di invio dati e ricezione comandi sulla stessa socket
     try:
         await asyncio.gather(send_loop(), receive_loop())
     finally:
@@ -196,7 +218,7 @@ async def agent_connection_handler(websocket):
 async def main():
     print("🚀 Agent Python avviato su ws://0.0.0.0:8765")
     async with websockets.serve(agent_connection_handler, "0.0.0.0", 8765):
-        await asyncio.Future()  # Mantiene attivo il server WebSocket
+        await asyncio.Future()
 
 
 if __name__ == "__main__":

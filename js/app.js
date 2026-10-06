@@ -8,7 +8,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // IP del tuo laptop nella rete locale per il WebSocket dell'Agent
-const LAPTOP_IP = '192.168.1.72'; // <--- INSERISCI QUI L'IP DEL TUO LAPTOP
+const LAPTOP_IP = '192.168.1.72';
 const WS_URL = `ws://${window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') ? window.location.hostname : LAPTOP_IP}:8765`;
 
 let ws = null;
@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initMetricDropdown();
     connectWebSocket();
     
-    // Meteo autonomo dal tablet
+    // Meteo autonomo dal tablet se agent non connesso
     fetchWeatherDirectly();
-    setInterval(fetchWeatherDirectly, 30 * 60 * 1000); // Aggiorna ogni 30 minuti
+    setInterval(fetchWeatherDirectly, 30 * 60 * 1000);
 });
 
 // --- 1. OROLOGIO E DATA ---
@@ -38,21 +38,14 @@ function initClock() {
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         
-        const clockElem = document.getElementById('clock') || 
-                          document.querySelector('.clock') || 
-                          document.querySelector('header h1') || 
-                          document.querySelector('h1');
-
+        const clockElem = document.getElementById('clock');
         if (clockElem) {
             clockElem.textContent = `${hours}:${minutes}`;
         }
 
         const options = { weekday: 'long', day: 'numeric', month: 'long' };
         const dateStr = now.toLocaleDateString('it-IT', options);
-        const dateElem = document.getElementById('date') || 
-                         document.querySelector('.date') || 
-                         document.querySelector('header p') || 
-                         document.querySelector('.subtitle');
+        const dateElem = document.getElementById('date');
 
         if (dateElem) {
             dateElem.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
@@ -68,8 +61,8 @@ async function fetchWeatherDirectly() {
     if (ws && ws.readyState === WebSocket.OPEN) return;
 
     try {
-        const lat = 41.467; 
-        const lon = 12.903;
+        const lat = 37.5778; 
+        const lon = 15.0964;
         
         const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const data = await response.json();
@@ -95,89 +88,67 @@ async function fetchWeatherDirectly() {
 }
 
 function updateWeatherUI(temp, condition, icon) {
-    const weatherCard = findCardByTitle('WEATHER') || findCardByTitle('METEO');
-    if (weatherCard) {
-        // Rimuovi o nascondi eventuali placeholder tipo "In attesa dei dati..."
-        const waitingElem = weatherCard.querySelector('.loading, .status, #weather-status') || 
-                            Array.from(weatherCard.querySelectorAll('p, span')).find(el => el.textContent.includes('attesa'));
-        if (waitingElem) {
-            waitingElem.style.display = 'none';
-        }
+    const tempElem = document.getElementById('weather-temp');
+    const condElem = document.getElementById('weather-cond');
 
-        const tempElem = weatherCard.querySelector('h2, .temp, #weather-temp') || weatherCard.children[1];
-        const condElem = weatherCard.querySelector('p:not(#weather-status), .cond, #weather-cond') || weatherCard.children[2];
-        
-        if (tempElem) {
-            tempElem.innerHTML = `<span class="weather-icon-inline" style="font-size: 1.2em; vertical-align: middle; margin-right: 5px;">${icon}</span><span class="weather-temp-num">${temp}</span><span style="font-size: 0.7em; margin-left: 2px;">°C</span>`;
-        }
-        if (condElem) {
-            condElem.textContent = condition;
-        }
+    if (tempElem) {
+        tempElem.innerHTML = `<span style="font-size: 0.8em; margin-right: 6px;">${icon}</span>${temp}°C`;
+    }
+    if (condElem) {
+        condElem.textContent = condition;
     }
 }
 
-// --- 3. MENU ---
+// --- 3. MENU A TENDINA ---
 function initMenu() {
-    const menuBtn = document.querySelector('.menu-btn') || document.getElementById('menu-btn') || document.querySelector('.three-dots');
-    const menuDropdown = document.getElementById('menu-dropdown') || document.querySelector('.dropdown-menu');
+    const menuBtn = document.getElementById('menu-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
 
-    if (menuBtn) {
+    if (menuBtn && menuDropdown) {
         menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (menuDropdown) {
-                const isVisible = menuDropdown.style.display === 'block';
-                menuDropdown.style.display = isVisible ? 'none' : 'block';
-            }
+            menuDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            menuDropdown.classList.remove('show');
         });
     }
 
-    document.addEventListener('click', () => {
-        if (menuDropdown) menuDropdown.style.display = 'none';
-    });
-}
-
-// --- 4. CONTROLLI MEDIA E AZIONI LAPTOP ---
-function initActionButtons() {
-    // Media controls
-    const mediaBtns = document.querySelectorAll('.now-playing button, .media-controls button');
-    mediaBtns.forEach(btn => {
-        const text = btn.innerText || btn.innerHTML || '';
-        if (text.includes('⏮') || btn.classList.contains('prev')) {
-            btn.onclick = () => sendAgentCommand('media_previous');
-        } else if (text.includes('⏯') || text.includes('▶') || btn.classList.contains('play')) {
-            btn.onclick = () => sendAgentCommand('media_play_pause');
-        } else if (text.includes('⏭') || btn.classList.contains('next')) {
-            btn.onclick = () => sendAgentCommand('media_next');
-        }
-    });
-
-    // Pulsanti Spegni / Sospendi Laptop
-    const shutdownBtn = document.getElementById('btn-shutdown') || document.querySelector('.btn-shutdown') || findButtonByText('spegni');
-    if (shutdownBtn) {
-        shutdownBtn.onclick = () => sendAgentCommand('shutdown');
+    // Elementi del menu
+    const refreshBtn = document.getElementById('menu-refresh');
+    if (refreshBtn) {
+        refreshBtn.onclick = () => window.location.reload();
     }
 
-    const suspendBtn = document.getElementById('btn-suspend') || document.querySelector('.btn-suspend') || findButtonByText('sospendi');
+    const suspendBtn = document.getElementById('menu-suspend');
     if (suspendBtn) {
         suspendBtn.onclick = () => sendAgentCommand('suspend');
     }
 
-    const reloadBtn = document.getElementById('btn-reload') || document.querySelector('.btn-reload') || findButtonByText('ricarica');
-    if (reloadBtn) {
-        reloadBtn.onclick = () => window.location.reload();
+    const poweroffBtn = document.getElementById('menu-poweroff');
+    if (poweroffBtn) {
+        poweroffBtn.onclick = () => sendAgentCommand('poweroff');
     }
+}
+
+// --- 4. CONTROLLI MEDIA ---
+function initActionButtons() {
+    const prevBtn = document.querySelector('.media-btn.prev');
+    const playBtn = document.querySelector('.media-btn.play');
+    const nextBtn = document.querySelector('.media-btn.next');
+
+    if (prevBtn) prevBtn.onclick = () => sendAgentCommand('media_previous');
+    if (playBtn) playBtn.onclick = () => sendAgentCommand('media_play_pause');
+    if (nextBtn) nextBtn.onclick = () => sendAgentCommand('media_next');
 }
 
 // --- 5. DROPDOWN METRICA ---
 function initMetricDropdown() {
-    const selectElem = document.querySelector('.card select') || document.getElementById('metric-select');
+    const selectElem = document.getElementById('metric-select');
     if (selectElem) {
         selectElem.addEventListener('change', (e) => {
-            const val = e.target.value.toLowerCase();
-            if (val.includes('ram')) currentMetric = 'ram';
-            else if (val.includes('net')) currentMetric = 'net';
-            else currentMetric = 'cpu';
-            
+            currentMetric = e.target.value;
             chartDataValues.fill(0);
             if (cpuChart) cpuChart.update();
         });
@@ -186,7 +157,7 @@ function initMetricDropdown() {
 
 // --- 6. GRAFICO ---
 function initChart() {
-    const ctx = document.getElementById('cpuChart') || document.querySelector('canvas');
+    const ctx = document.getElementById('cpuChart');
     if (!ctx) return;
 
     try {
@@ -215,7 +186,7 @@ function initChart() {
                         min: 0,
                         suggestedMax: 100,
                         grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: '#888' }
+                        ticks: { color: '#8292a6', font: { size: 10 } }
                     }
                 },
                 plugins: { legend: { display: false } }
@@ -247,7 +218,7 @@ function connectWebSocket() {
 
     ws.onclose = () => {
         updateAgentStatus(false);
-        setTimeout(connectWebSocket, 5000);
+        setTimeout(connectWebSocket, 4000);
     };
 
     ws.onerror = () => {
@@ -266,6 +237,7 @@ function sendAgentCommand(command) {
 
 // --- 8. AGGIORNAMENTO DASHBOARD ---
 function updateDashboard(data) {
+    // Laptop Info
     const laptopOs = document.getElementById('laptop-os');
     const laptopCpu = document.getElementById('laptop-cpu');
     const laptopRam = document.getElementById('laptop-ram');
@@ -276,6 +248,15 @@ function updateDashboard(data) {
         laptopRam.textContent = `${data.ram_used_gb} / ${data.ram_total_gb} GB (${data.ram_percent}%)`;
     }
 
+    // Media
+    if (data.media) {
+        const titleElem = document.getElementById('media-title');
+        const artistElem = document.getElementById('media-artist');
+        if (titleElem) titleElem.textContent = data.media.title || 'Nothing playing';
+        if (artistElem) artistElem.textContent = data.media.artist || 'In attesa di media...';
+    }
+
+    // Chart Data
     let valToPush = data.cpu || 0;
     if (currentMetric === 'ram') valToPush = data.ram_percent || 0;
     if (currentMetric === 'net') valToPush = data.net_recv_mb || 0;
@@ -284,65 +265,64 @@ function updateDashboard(data) {
     chartDataValues.shift();
     if (cpuChart) cpuChart.update('none');
 
+    // Weather
     if (data.weather) {
         updateWeatherUI(data.weather.temp, data.weather.condition, data.weather.icon);
     }
+
+    // Calendar Events Fix
+    if (data.events) {
+        updateCalendarUI(data.events);
+    }
 }
 
-// --- 9. AGGIORNAMENTO STATO (Laptop + System Status) ---
+// --- 9. AGGIORNAMENTO CALENDARIO ---
+function updateCalendarUI(events) {
+    const eventsList = document.getElementById('events-list');
+    if (!eventsList) return;
+
+    if (!events || events.length === 0) {
+        eventsList.innerHTML = `<div style="color: var(--text-sub); font-size: 0.85rem;">Nessun evento in programma oggi</div>`;
+        return;
+    }
+
+    eventsList.innerHTML = events.map(ev => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">${ev.summary}</span>
+            <span style="font-size: 0.75rem; color: var(--accent-green); background: rgba(78, 217, 156, 0.12); padding: 2px 8px; border-radius: 4px; font-weight: 600;">${ev.time}</span>
+        </div>
+    `).join('');
+}
+
+// --- 10. AGGIORNAMENTO STATI & SPIE ---
 function updateAgentStatus(isOnline) {
-    // 1. Aggiorna la sezione specifica Laptop
+    // 1. Laptop Card Status
     const laptopStatusText = document.getElementById('laptop-status-text');
     const laptopStatusDot = document.getElementById('laptop-status-dot');
 
     if (laptopStatusText) {
         laptopStatusText.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
-        laptopStatusText.style.color = isOnline ? '#4ed99c' : '#ff5c5c';
+        laptopStatusText.style.color = isOnline ? 'var(--accent-green)' : 'var(--accent-red)';
     }
     if (laptopStatusDot) {
-        laptopStatusDot.style.backgroundColor = isOnline ? '#4ed99c' : '#ff5c5c';
+        laptopStatusDot.style.backgroundColor = isOnline ? 'var(--accent-green)' : 'var(--accent-red)';
+        laptopStatusDot.style.boxShadow = isOnline ? '0 0 8px var(--accent-green)' : '0 0 8px var(--accent-red)';
     }
 
-    // 2. Aggiorna la sezione generale "SYSTEM STATUS" (Spia del menu o dashboard)
-    const systemStatusCard = findCardByTitle('SYSTEM STATUS') || findCardByTitle('STATUS');
-    if (systemStatusCard) {
-        const statusText = systemStatusCard.querySelector('.status-text, p, span');
-        const statusDot = systemStatusCard.querySelector('.dot, .status-dot, .led');
+    // 2. System Status Card
+    const agentStatusText = document.getElementById('agent-status-text');
+    const agentStatusDot = document.getElementById('agent-status-dot');
 
-        if (statusText) {
-            statusText.textContent = isOnline ? 'Connected' : 'Disconnected';
-            statusText.style.color = isOnline ? '#4ed99c' : '#ff5c5c';
-        }
-        if (statusDot) {
-            statusDot.style.backgroundColor = isOnline ? '#4ed99c' : '#ff5c5c';
-            statusDot.classList.toggle('connected', isOnline);
-            statusDot.classList.toggle('disconnected', !isOnline);
-        }
+    if (agentStatusText) {
+        agentStatusText.textContent = isOnline ? 'Connected' : 'Disconnected';
+        agentStatusText.style.color = isOnline ? 'var(--accent-green)' : 'var(--accent-red)';
+    }
+    if (agentStatusDot) {
+        agentStatusDot.style.backgroundColor = isOnline ? 'var(--accent-green)' : 'var(--accent-red)';
+        agentStatusDot.style.boxShadow = isOnline ? '0 0 8px var(--accent-green)' : '0 0 8px var(--accent-red)';
     }
 
     if (!isOnline) {
         fetchWeatherDirectly();
     }
-}
-
-// Helper per trovare schede tramite il titolo
-function findCardByTitle(titleText) {
-    const cards = document.querySelectorAll('.card');
-    for (let card of cards) {
-        if (card.innerText && card.innerText.toUpperCase().includes(titleText)) {
-            return card;
-        }
-    }
-    return null;
-}
-
-// Helper per trovare pulsanti tramite il testo contenuto
-function findButtonByText(textMatch) {
-    const buttons = document.querySelectorAll('button');
-    for (let btn of buttons) {
-        if (btn.innerText && btn.innerText.toLowerCase().includes(textMatch.toLowerCase())) {
-            return btn;
-        }
-    }
-    return null;
 }
